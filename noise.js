@@ -1,5 +1,14 @@
 var GRID_SIZE = 255;
 
+var gradients = [
+	{ x:  1, y:  1 },
+	// { x:  1, y:  0 },
+	{ x:  0, y:  1 },
+	{ x: -1, y:  0 },
+	// { x:  0, y: -1 },
+	{ x: -1, y: -1 }
+];
+
 var grid = [];
 
 function generateGrid() {
@@ -7,13 +16,22 @@ function generateGrid() {
 
 	for (var x = 0; x < GRID_SIZE; ++x) {
 		for (var y = 0; y < GRID_SIZE; ++y) {
+			var gradientIdx = ~~(Math.random() * gradients.length);
+			var gradient = gradients[gradientIdx];
+			grid.push(gradient.x);
+			grid.push(gradient.y);
+
+			/*
 			var theta = 2 * Math.PI * Math.random();
+			// var xComponent = Math.sin(theta);
+			// var yComponent = Math.cos(theta);
 
 			var xComponent = Math.sin(theta);
-			var yColumn = Math.cos(theta);
+			var yComponent = Math.cos(theta);//Math.sqrt(1 - xComponent * xComponent);
 
 			grid.push(xComponent);
-			grid.push(yColumn);
+			grid.push(yComponent);
+			*/
 		}
 	}
 };
@@ -84,17 +102,20 @@ function createColorStop(color, stop) {
 
 var DEEP_WATER_COLOR = [
 	{ r: 0x00, g: 0x00, b: 0xCD },
-	{ r: 0x10, g: 0x10, b: 0xA9 }
+	{ r: 0x10, g: 0x10, b: 0xCD }
 ];
 var WATER_COLOR = [
 	{ r: 0x00, g: 0xBF, b: 0xFF },
-	{ r: 0x00, g: 0x9A, b: 0xFF }
+	{ r: 0x00, g: 0xB0, b: 0xFF }
 ];
 var LIGHT_WATER_COLOR = [{ r: 0x72, g: 0xDA, b: 0xFF }];
 var SAND_COLOR        = [{ r: 0xf5, g: 0xf5, b: 0xdc }];
 var GRASS_COLOR = [
-	{ r: 0x98, g: 0xfb, b: 0x98 },
-	{ r: 0xE0, g: 0xFA, b: 0x99 }
+	{ r: 0xE2, g: 0xFB, b: 0x98 },
+	{ r: 0xE3, g: 0xFC, b: 0x98 },
+	{ r: 0xE1, g: 0xFC, b: 0x98 },
+	{ r: 0xE3, g: 0xFC, b: 0x98 },
+	{ r: 0xE1, g: 0xFA, b: 0x98 }
 ];
 var TREE_COLOR        = [{ r: 0x22, g: 0x8b, b: 0x22 }];
 var SNOW_COLOR        = [{ r: 0xf5, g: 0xff, b: 0xfa }];
@@ -102,9 +123,9 @@ var SNOW_COLOR        = [{ r: 0xf5, g: 0xff, b: 0xfa }];
 var tileColors = [
 	createColorStop(DEEP_WATER_COLOR, -0.45),
 	createColorStop(WATER_COLOR, -0.38),
-	createColorStop(LIGHT_WATER_COLOR, -0.34),
-	createColorStop(WATER_COLOR, -0.3),
-	createColorStop(SAND_COLOR, -0.2),
+	createColorStop(LIGHT_WATER_COLOR, -0.2),
+	createColorStop(WATER_COLOR, -0.15),
+	createColorStop(SAND_COLOR, -0.1),
 	createColorStop(GRASS_COLOR, 0.2),
 	createColorStop(TREE_COLOR, 0.45),
 	createColorStop(SNOW_COLOR, 100)
@@ -125,7 +146,10 @@ function drawNoise() {
 				color = tileColors[colorIdx];
 			}
 
-			var styleIdx = ~~(Math.abs(noise) * (10 + color.styles.length)) % color.styles.length;
+			var value = ~~(Math.abs(1000 * Math.sin(noise)));
+			// var value = ~~(100 * Math.abs(noise));
+
+			var styleIdx = value % color.styles.length;
 			var style = color.styles[styleIdx];
 			ctx.fillStyle = style;
 			ctx.fillRect(
@@ -154,16 +178,16 @@ var keyMap = {};
 
 function animate() {
 	if (keyMap[37]) {
-		xCoord -= 2;
+		xCoord -= 4;
 	}
 	if (keyMap[38]) {
-		yCoord -= 2;
+		yCoord -= 4;
 	}
 	if (keyMap[39]) {
-		xCoord += 2;
+		xCoord += 4;
 	}
 	if (keyMap[40]) {
-		yCoord += 2;
+		yCoord += 4;
 	}
 
 	if (keyMap[65]) {
