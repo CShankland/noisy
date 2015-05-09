@@ -66,66 +66,54 @@ function perlin(x, y) {
 
 var canvas = document.getElementById("canvas");
 
-var MAP_SIZE = 128;
-var BLOCK_SIZE = 10;
+var MAP_SIZE = 80;
+var BLOCK_SIZE = 16;
 canvas.width = MAP_SIZE * BLOCK_SIZE;
 canvas.height = MAP_SIZE * BLOCK_SIZE;
 
 var ctx = canvas.getContext("2d");
 
-var DEEP_WATER_COLOR = {
-	r: 0x00,
-	g: 0x00,
-	b: 0xcd,
-	stop: -0.45
-};
-var WATER_COLOR = {
-	r: 0x00,
-	g: 0xBF,
-	b: 0xFF,
-	stop: -0.3
-};
-var SAND_COLOR = {
-	r: 0xf5,
-	g: 0xf5,
-	b: 0xdc,
-	stop: -0.2
-};
-var GRASS_COLOR = {
-	r: 0x98,
-	g: 0xfb,
-	b: 0x98,
-	stop: 0.2
-};
-var TREE_COLOR = {
-	r: 0x22,
-	g: 0x8b,
-	b: 0x22,
-	stop: 0.45
-};
-var SNOW_COLOR = {
-	r: 0xf5,
-	g: 0xff,
-	b: 0xfa,
-	stop: 100
-};
+function createColorStop(color, stop) {
+	return {
+		styles: color.map(function createStyle(c) {
+			return "rgb(" + c.r + "," + c.g + "," + c.b + ")"
+		}),
+		stop: stop
+	};
+}
+
+var DEEP_WATER_COLOR = [
+	{ r: 0x00, g: 0x00, b: 0xCD },
+	{ r: 0x10, g: 0x10, b: 0xA9 }
+];
+var WATER_COLOR = [
+	{ r: 0x00, g: 0xBF, b: 0xFF },
+	{ r: 0x00, g: 0x9A, b: 0xFF }
+];
+var LIGHT_WATER_COLOR = [{ r: 0x72, g: 0xDA, b: 0xFF }];
+var SAND_COLOR        = [{ r: 0xf5, g: 0xf5, b: 0xdc }];
+var GRASS_COLOR = [
+	{ r: 0x98, g: 0xfb, b: 0x98 },
+	{ r: 0xE0, g: 0xFA, b: 0x99 }
+];
+var TREE_COLOR        = [{ r: 0x22, g: 0x8b, b: 0x22 }];
+var SNOW_COLOR        = [{ r: 0xf5, g: 0xff, b: 0xfa }];
 
 var tileColors = [
-	DEEP_WATER_COLOR,
-	WATER_COLOR,
-	SAND_COLOR,
-	GRASS_COLOR,
-	TREE_COLOR,
-	SNOW_COLOR
+	createColorStop(DEEP_WATER_COLOR, -0.45),
+	createColorStop(WATER_COLOR, -0.38),
+	createColorStop(LIGHT_WATER_COLOR, -0.34),
+	createColorStop(WATER_COLOR, -0.3),
+	createColorStop(SAND_COLOR, -0.2),
+	createColorStop(GRASS_COLOR, 0.2),
+	createColorStop(TREE_COLOR, 0.45),
+	createColorStop(SNOW_COLOR, 100)
 ];
 
 var xCoord = 0;
 var yCoord = 0;
 
 function drawNoise() {
-	var imageData = ctx.getImageData(0, 0, MAP_SIZE * BLOCK_SIZE, MAP_SIZE * BLOCK_SIZE);
-	var pixelData = imageData.data;
-
 	for (var x = 0; x < MAP_SIZE; ++x) {
 		for (var y = 0; y < MAP_SIZE; ++y) {
 			var noise = perlin(x + xCoord, y + yCoord);
@@ -137,23 +125,16 @@ function drawNoise() {
 				color = tileColors[colorIdx];
 			}
 
-			// Fill a whole rectangle
-			for (var idx = 0; idx < BLOCK_SIZE * BLOCK_SIZE; ++idx) {
-				var rectX = x * BLOCK_SIZE + ~~(idx / BLOCK_SIZE);
-				var rectY = y * BLOCK_SIZE + idx % BLOCK_SIZE;
-
-				var pixelIdx = 4 * (rectX * MAP_SIZE * BLOCK_SIZE + rectY);
-
-				pixelData[pixelIdx] = color.r;
-				pixelData[pixelIdx + 1] = color.g;
-				pixelData[pixelIdx + 2] = color.b;
-				pixelData[pixelIdx + 3] = 255;
-			}
+			var styleIdx = ~~(Math.abs(noise) * (10 + color.styles.length)) % color.styles.length;
+			var style = color.styles[styleIdx];
+			ctx.fillStyle = style;
+			ctx.fillRect(
+				x * BLOCK_SIZE, y * BLOCK_SIZE,
+				BLOCK_SIZE, BLOCK_SIZE
+			);
 		}
 	}
-
-	ctx.putImageData(imageData, 0, 0);
-}
+};
 
 generateGrid();
 
@@ -173,22 +154,29 @@ var keyMap = {};
 
 function animate() {
 	if (keyMap[37]) {
-		yCoord -= 10;
+		xCoord -= 2;
 	}
 	if (keyMap[38]) {
-		xCoord -= 10;
+		yCoord -= 2;
 	}
 	if (keyMap[39]) {
-		yCoord += 10;
+		xCoord += 2;
 	}
 	if (keyMap[40]) {
-		xCoord += 10;
+		yCoord += 2;
+	}
+
+	if (keyMap[65]) {
+		COORDS_PER_GRID -= 1;
+	}
+
+	if (keyMap[90]) {
+		COORDS_PER_GRID += 1;
 	}
 
 	xCoord = Math.min(Math.max(0, xCoord), GRID_SIZE * COORDS_PER_GRID);
 	yCoord = Math.min(Math.max(0, yCoord), GRID_SIZE * COORDS_PER_GRID);
 
-	//updateGridScale();
 	drawNoise();
 
 	requestAnimationFrame(animate);
@@ -199,6 +187,8 @@ animate();
 document.onkeydown = function keydown(e) {
 	var code = e.keyCode;
 	keyMap[code] = true;
+
+	console.debug(code);
 };
 
 document.onkeyup = function keyup(e) {
