@@ -1,0 +1,19 @@
+{
+  "name": "noisy",
+  "version": "0.0.1",
+  "homepage": "https://github.com/CShankland/noisy",
+  "authors": [
+    "Christopher Shankland <christopher.shankland@gmail.com>"
+  ],
+  "description": "Noise experiments",
+  "main": "index.html",
+  "moduleType": [
+    "es6"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "es5-shim": "~4.1.3",
+    "es6-shim": "~0.31.2",
+    "requirejs": "~2.1.17"
+  }
+}
